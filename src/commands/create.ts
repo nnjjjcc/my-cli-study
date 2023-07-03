@@ -2,6 +2,7 @@ import path from "path";
 import { existsSync, rmSync } from "fs";
 import inquirer from "inquirer";
 import { wrapLoading } from "../utils/loading.js";
+import { getOrganizationProjects } from "../utils/project.js";
 export default async function (name, Option) {
   const cwd = process.cwd(); //获取当前项目的工作目录
   const targetDir = path.join(cwd, name);
@@ -33,4 +34,13 @@ export default async function (name, Option) {
       }
     }
   }
+  let projects = await getOrganizationProjects();
+  let { action } = await inquirer.prompt([
+    {
+      name: "action",
+      type: "list",
+      message: "请选择项目列表",
+      choices: projects,
+    },
+  ]);
 }

@@ -11,6 +11,7 @@ import path from "path";
 import { existsSync, rmSync } from "fs";
 import inquirer from "inquirer";
 import { wrapLoading } from "../utils/loading.js";
+import { getOrganizationProjects } from "../utils/project.js";
 export default function (name, Option) {
     return __awaiter(this, void 0, void 0, function* () {
         const cwd = process.cwd(); //获取当前项目的工作目录
@@ -43,5 +44,14 @@ export default function (name, Option) {
                 }
             }
         }
+        let projects = yield getOrganizationProjects();
+        let { action } = yield inquirer.prompt([
+            {
+                name: "action",
+                type: "list",
+                message: "请选择项目列表",
+                choices: projects,
+            },
+        ]);
     });
 }
