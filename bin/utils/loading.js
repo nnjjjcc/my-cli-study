@@ -8,10 +8,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import ora from "ora";
-export const wrapLoading = (message, fn) => __awaiter(void 0, void 0, void 0, function* () {
+function sleep(n) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve();
+        }, n);
+    });
+}
+export const wrapLoading = (message, fn, ...args) => __awaiter(void 0, void 0, void 0, function* () {
     const spinner = ora(message);
     spinner.start();
-    const res = yield fn(); //aop 将用户逻辑包裹
-    spinner.succeed();
-    return res;
+    try {
+        const res = yield fn(...args); //aop 将用户逻辑包裹
+        spinner.succeed();
+        return res;
+    }
+    catch (error) {
+        spinner.fail("request fail, refetching");
+        yield sleep(1000);
+        return wrapLoading(message, fn, ...args);
+    }
 });

@@ -15,21 +15,13 @@ export const defaultConfig = {
 const { organization, accessToken } = defaultConfig;
 export function getOrganizationProjects() {
     return __awaiter(this, void 0, void 0, function* () {
-        const res = yield axios.get(`https://gitee.com/api/v5/orgs/${organization}/repos`, {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        });
+        const res = yield axios.get("https://api.github.com/orgs/zhurong-cli/repos");
         return res.data.map((item) => item.name);
     });
 }
 export function getOrganizationVersions(repo) {
     return __awaiter(this, void 0, void 0, function* () {
-        const res = yield axios.get(`https://gitee.com/api/v5/repos/${organization}/${repo}/tags`, {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        });
+        const res = yield axios.get(`https://api.github.com/repos/zhurong-cli/${repo}/tags`);
         return res.data.map((item) => item.name);
     });
 }

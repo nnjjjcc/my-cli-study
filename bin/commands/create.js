@@ -10,8 +10,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import path from "path";
 import { existsSync, rmSync } from "fs";
 import inquirer from "inquirer";
+import downloadGitRepo from "download-git-repo";
+import { promisify } from "util";
 import { wrapLoading } from "../utils/loading.js";
-import { getOrganizationProjects } from "../utils/project.js";
+import chalk from "chalk";
+import { getOrganizationProjects, getOrganizationVersions, } from "../utils/project.js";
 export default function (name, Option) {
     return __awaiter(this, void 0, void 0, function* () {
         const cwd = process.cwd(); //获取当前项目的工作目录
@@ -45,13 +48,35 @@ export default function (name, Option) {
             }
         }
         let projects = yield getOrganizationProjects();
-        let { action } = yield inquirer.prompt([
+        let { projectName } = yield inquirer.prompt([
             {
-                name: "action",
+                name: "projectName",
                 type: "list",
                 message: "请选择项目列表",
                 choices: projects,
             },
         ]);
+        let tags = yield getOrganizationVersions(projectName);
+        let { tag } = yield inquirer.prompt({
+            name: "tag",
+            type: "list",
+            message: "请选择对应的版本",
+            choices: tags,
+        });
+        console.log(tag, projectName);
+        //获取项目下载到本地
+        const newDownloadGitRepo = promisify(downloadGitRepo);
+        function downloadOrganization(projectName, tag) {
+            return __awaiter(this, void 0, void 0, function* () {
+                const templateUrl = `zhurong-cli/${projectName}${tag ? "#" + tag : ""}`;
+                yield wrapLoading("downloading template, please wait", newDownloadGitRepo, templateUrl, path.resolve(cwd, targetDir) // 项目创建位置
+                );
+            });
+        }
+        let data = yield downloadOrganization(projectName, tag);
+        console.log(`\r\nSuccessfully created project ${chalk.cyan(projectName)}`);
+        console.log(`\r\n  cd ${chalk.cyan(projectName)}`);
+        console.log("  npm install\r\n");
+        console.log("  npm run dev\r\n");
     });
 }
