@@ -9,11 +9,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { program } from "commander";
+import Configstore from "configstore";
 import { dirname, join } from "path";
 import { createRequire } from "module";
 import { fileURLToPath } from "url";
 import figlet from "figlet";
 import chalk from "chalk";
+const conf = new Configstore("XU-cli");
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const require = createRequire(import.meta.url);
@@ -33,6 +35,13 @@ program
     .option("-f,--force", "overwrite target directory")
     .action((name, Option) => __awaiter(void 0, void 0, void 0, function* () {
     (yield import("./commands/create.js")).default(name, Option);
+}));
+program
+    .command("init <projectName>")
+    .description("使用xu-cli创建项目")
+    .option("-p, --projectName <string>", "project name")
+    .action((initProjectName) => __awaiter(void 0, void 0, void 0, function* () {
+    yield askForOptions(initProjectName); //这里调用我们的自定义问询函数
 }));
 program
     .command("config [value]")
