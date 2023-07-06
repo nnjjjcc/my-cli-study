@@ -33,7 +33,7 @@ program
   .description("使用xu-cli创建项目")
   .option("-p, --projectName <string>", "project name")
   .action(async (initProjectName) => {
-    await askForOptions(initProjectName); //这里调用我们的自定义问询函数
+    (await import("./commands/automation.js")).default(initProjectName); //这里调用我们的自定义问询函数
   });
 program
   .command("config [value]")

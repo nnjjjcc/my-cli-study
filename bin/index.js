@@ -41,7 +41,7 @@ program
     .description("使用xu-cli创建项目")
     .option("-p, --projectName <string>", "project name")
     .action((initProjectName) => __awaiter(void 0, void 0, void 0, function* () {
-    yield askForOptions(initProjectName); //这里调用我们的自定义问询函数
+    (yield import("./commands/automation.js")).default(initProjectName); //这里调用我们的自定义问询函数
 }));
 program
     .command("config [value]")
