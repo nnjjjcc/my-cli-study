@@ -267,6 +267,8 @@ export default async function askForOptions(initProjectName) {
   }
   if (isPreSetRules.selectRule !== "进入自定义流程") {
     startCreateByPreSetRules(initProjectName, isPreSetRules);
+    let customRulesList = conf.get("customRulesList");
+    console.log("conf", customRulesList);
   } else {
     // 进入自定义流程
     let preInstall = [
