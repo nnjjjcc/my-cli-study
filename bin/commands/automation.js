@@ -9,7 +9,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import Configstore from "configstore";
 import inquirer from "inquirer";
+import { existsSync, rmSync } from "fs";
+import { wrapLoading } from "../utils/loading.js";
 import { exec } from "child_process";
+import path from "path";
 const conf = new Configstore("XU-cli");
 let animation = null;
 function startCreateByPreSetRules(initProjectName, isPreSetRules) {
@@ -47,6 +50,7 @@ function startCreateByPreSetRules(initProjectName, isPreSetRules) {
         }), 1000);
     });
 }
+// 等待用户按下键盘按钮并返回对应的按键值
 function waitUserPresskey() {
     return __awaiter(this, void 0, void 0, function* () {
         return yield new Promise((resolve, reject) => {
@@ -61,6 +65,7 @@ function waitUserPresskey() {
         });
     });
 }
+//实现ctrl+c退出功能
 function selectFramework(child) {
     return __awaiter(this, void 0, void 0, function* () {
         let input = yield waitUserPresskey();
@@ -256,6 +261,30 @@ function getCustomRulesList() {
 //init 主函数
 export default function askForOptions(initProjectName) {
     return __awaiter(this, void 0, void 0, function* () {
+        const cwd = process.cwd(); //获取当前项目的工作目录
+        const targetDir = path.join(cwd, initProjectName);
+        if (existsSync(targetDir)) {
+            //询问用户,是否要删除
+            let { action } = yield inquirer.prompt([
+                {
+                    name: "action",
+                    type: "list",
+                    message: "目录存在了是否要覆盖",
+                    choices: [
+                        { name: "overwrite", value: "overwrite" },
+                        { name: "cancel", value: false },
+                    ],
+                },
+            ]);
+            if (!action) {
+                return console.log("用户取消创建");
+            }
+            if (action === "overwrite") {
+                yield wrapLoading("remove", () => {
+                    rmSync(targetDir, { recursive: true });
+                });
+            }
+        }
         const customRulesList = getCustomRulesList();
         let preSetRulesList = [
             "default(vue-router,vuex,less),JavaScript",
@@ -283,6 +312,8 @@ export default function askForOptions(initProjectName) {
         }
         if (isPreSetRules.selectRule !== "进入自定义流程") {
             startCreateByPreSetRules(initProjectName, isPreSetRules);
+            let customRulesList = conf.get("customRulesList");
+            console.log("conf", customRulesList);
         }
         else {
             // 进入自定义流程
@@ -309,7 +340,7 @@ export default function askForOptions(initProjectName) {
                     name: "vuexorpinia",
                     type: "list",
                     message: "你需要vuex🍕 或者pinia🍍 吗?",
-                    choices: ["vuex", "pinia", "no"],
+                    choices: ["vuex", "pinia", "recoil", "no"],
                 },
                 {
                     name: "otherPackages",

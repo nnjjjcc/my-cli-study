@@ -1,6 +1,9 @@
 import Configstore from "configstore";
 import inquirer from "inquirer";
+import { existsSync, rmSync } from "fs";
+import { wrapLoading } from "../utils/loading.js";
 import { exec, fork } from "child_process";
+import path from "path";
 const conf = new Configstore("XU-cli");
 let animation = null;
 async function startCreateByPreSetRules(initProjectName, isPreSetRules) {
@@ -35,6 +38,7 @@ async function startCreateByPreSetRules(initProjectName, isPreSetRules) {
     process.exit();
   }, 1000);
 }
+// 等待用户按下键盘按钮并返回对应的按键值
 async function waitUserPresskey() {
   return await new Promise((resolve, reject) => {
     process.stdin.setRawMode(true);
@@ -47,6 +51,7 @@ async function waitUserPresskey() {
     });
   });
 }
+//实现ctrl+c退出功能
 async function selectFramework(child) {
   let input = await waitUserPresskey();
   // 如果按下ctrl+c，退出进程
@@ -240,6 +245,30 @@ function getCustomRulesList() {
 }
 //init 主函数
 export default async function askForOptions(initProjectName) {
+  const cwd = process.cwd(); //获取当前项目的工作目录
+  const targetDir = path.join(cwd, initProjectName);
+  if (existsSync(targetDir)) {
+    //询问用户,是否要删除
+    let { action } = await inquirer.prompt([
+      {
+        name: "action",
+        type: "list",
+        message: "目录存在了是否要覆盖",
+        choices: [
+          { name: "overwrite", value: "overwrite" },
+          { name: "cancel", value: false },
+        ],
+      },
+    ]);
+    if (!action) {
+      return console.log("用户取消创建");
+    }
+    if (action === "overwrite") {
+      await wrapLoading("remove", () => {
+        rmSync(targetDir, { recursive: true });
+      });
+    }
+  }
   const customRulesList = getCustomRulesList();
   let preSetRulesList = [
     "default(vue-router,vuex,less),JavaScript",
@@ -294,7 +323,7 @@ export default async function askForOptions(initProjectName) {
         name: "vuexorpinia",
         type: "list",
         message: "你需要vuex🍕 或者pinia🍍 吗?",
-        choices: ["vuex", "pinia", "no"],
+        choices: ["vuex", "pinia", "recoil", "no"],
       },
       {
         name: "otherPackages",
